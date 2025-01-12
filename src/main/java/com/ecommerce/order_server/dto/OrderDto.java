@@ -16,6 +16,6 @@ public class OrderDto {
     private Long id;
     private List<ProductDto> products;
     private Double totalPrice;
-
+    private UserDto user;
 }
 

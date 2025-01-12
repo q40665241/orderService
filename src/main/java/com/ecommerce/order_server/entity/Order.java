@@ -20,4 +20,7 @@ public class Order {
     @ManyToMany
     private List<Product> products;
     private Double totalPrice;
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }

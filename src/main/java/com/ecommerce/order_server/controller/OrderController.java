@@ -19,8 +19,8 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
-        OrderDto createdOrder = orderService.createOrder(orderDto);
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto,@RequestParam("userId") Long userId) {
+        OrderDto createdOrder = orderService.createOrder(orderDto,userId);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
 
@@ -47,14 +47,14 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.ok("Order deleted successfully");
     }
-    @PostMapping("/{orderId}/product/{productId}")
+
+    @PostMapping("/addProduct")
     public ResponseEntity<OrderDto> addProductToOrder(
-        @PathVariable Long orderId,
-        @PathVariable Long productId)
-        {
-            OrderDto updatedOrder = orderService.addProductToOrder(orderId, productId);
-
-            return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
-
-        }
+            @RequestParam Long orderId,
+            @RequestParam Long productId,
+            @RequestParam Long userId) {
+        OrderDto updatedOrder = orderService.addProductToOrder(productId, orderId, userId);
+        return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
+    }
+    
 }

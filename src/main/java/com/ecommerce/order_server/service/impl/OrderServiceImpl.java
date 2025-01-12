@@ -3,12 +3,14 @@ package com.ecommerce.order_server.service.impl;
 import com.ecommerce.order_server.dto.OrderDto;
 import com.ecommerce.order_server.entity.Order;
 import com.ecommerce.order_server.entity.Product;
+import com.ecommerce.order_server.entity.User;
 import com.ecommerce.order_server.exception.InsufficientStockException;
 import com.ecommerce.order_server.exception.ResourceNotFoundException;
 import com.ecommerce.order_server.mapper.OrderMapper;
 import com.ecommerce.order_server.mapper.ProductMapper;
 import com.ecommerce.order_server.repository.OrderRepository;
 import com.ecommerce.order_server.repository.ProductRepository;
+import com.ecommerce.order_server.repository.UserRepository;
 import com.ecommerce.order_server.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,10 +27,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ProductRepository productRepository;
-
+    @Autowired
+    private UserRepository userRepository;
     @Override
-    public OrderDto createOrder(OrderDto orderDto) {
+    public OrderDto createOrder(OrderDto orderDto, Long userId){
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         Order order = OrderMapper.toOrder(orderDto);
+        order.setUser(user);
         orderRepository.save(order);
         return OrderMapper.toOrderDto(order);
     }
@@ -73,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDto addProductToOrder(Long productId,Long orderId) {
+    public OrderDto addProductToOrder(Long productId,Long orderId,Long userId) {
         Product product = productRepository.findById(productId)
         .orElseThrow(()->new ResourceNotFoundException("Product is not exists with given id: "+productId));
       
@@ -82,18 +88,26 @@ public class OrderServiceImpl implements OrderService {
             throw new InsufficientStockException("Not enough stock for product: " + product.getName());
         }
         Order order = orderRepository.findById(orderId).orElse(null);
-
+        User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         // If order does not exist, create a new one
+
         if (order == null) {
+             
             order = new Order();
+            order.setUser(user);
             order.setTotalPrice(0.0); // Initialize total price
-          
+            
+
+        }
+        else{
+            if (!order.getUser().getId().equals(userId)) {
+                throw new ResourceNotFoundException("Order does not belong to the specified user");
+            }
         }
         if (order.getProducts() == null) {
         order.setProducts(new ArrayList<>());
      }
-
-        order.getProducts().add(product);
 
         product.setQuantity(product.getQuantity() - 1);
         productRepository.save(product);
@@ -111,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
     private double calculateTotalPrice(List<Product> products) {
         double totalPrice = 0;
         for (Product product : products) {
-            totalPrice += product.getPrice() * product.getQuantity();  // Assumes quantity in order
+            totalPrice += product.getPrice();  // Assumes quantity in order
         }
         return totalPrice;
     }

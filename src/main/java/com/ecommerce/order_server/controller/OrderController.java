@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order")
@@ -19,8 +21,8 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto,@RequestParam("userId") Long userId) {
-        OrderDto createdOrder = orderService.createOrder(orderDto,userId);
+    public ResponseEntity<OrderDto> createOrder(@RequestParam("userId") Long userId) {
+        OrderDto createdOrder = orderService.createOrder(userId);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
 
@@ -42,11 +44,19 @@ public class OrderController {
         return new ResponseEntity<>(orderDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteOrder(@PathVariable("id") Long id) {
+@DeleteMapping("{id}")
+public ResponseEntity<Map<String, String>> deleteOrder(@PathVariable Long id) {
+    try {
         orderService.deleteOrder(id);
-        return ResponseEntity.ok("Order deleted successfully");
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Order deleted successfully");
+        return ResponseEntity.ok(response); // ✅ Ensure JSON response
+    } catch (Exception e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+}
 
     @PostMapping("/addProduct")
     public ResponseEntity<OrderDto> addProductToOrder(
@@ -56,5 +66,11 @@ public class OrderController {
         OrderDto updatedOrder = orderService.addProductToOrder(productId, orderId, userId);
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
     }
-    
+    @DeleteMapping("deleteProduct")
+    public ResponseEntity<OrderDto> removeProductFromOrder(@RequestParam Long orderId, 
+                                                           @RequestParam Long productId) {
+        OrderDto updatedOrder = orderService.removeProductFromOrder(orderId, productId);
+        return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
+
+    }
 }

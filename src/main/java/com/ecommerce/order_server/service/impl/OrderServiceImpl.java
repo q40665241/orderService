@@ -30,14 +30,21 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private UserRepository userRepository;
     @Override
-    public OrderDto createOrder(OrderDto orderDto, Long userId){
+    public OrderDto createOrder(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        Order order = OrderMapper.toOrder(orderDto);
+    
+        // Create an empty order
+        Order order = new Order();
         order.setUser(user);
+        order.setProducts(new ArrayList<>()); // Ensure product list is not null
+        order.setTotalPrice(0.0); // Default price
+    
         orderRepository.save(order);
+    
         return OrderMapper.toOrderDto(order);
     }
+    
     
     @Override
     public OrderDto updateOrder(Long orderId, OrderDto orderDto) {
@@ -128,6 +135,24 @@ public class OrderServiceImpl implements OrderService {
             totalPrice += product.getPrice();  // Assumes quantity in order
         }
         return totalPrice;
+    }
+    @Override
+    public OrderDto removeProductFromOrder(Long orderId, Long productId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+
+        if (!order.getProducts().contains(product)) {
+            throw new ResourceNotFoundException("Product not found in order with id: " + productId);
+        }
+
+        order.getProducts().remove(product);
+        order.setTotalPrice(order.getTotalPrice() - product.getPrice());
+
+        orderRepository.save(order);
+        return OrderMapper.toOrderDto(order);
     }
 
 }

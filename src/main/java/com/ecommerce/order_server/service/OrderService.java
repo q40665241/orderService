@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface OrderService {
 
-    OrderDto createOrder(OrderDto orderDto, Long userId);
+    OrderDto createOrder( Long userId);
 
     OrderDto updateOrder(Long orderId, OrderDto orderDto);
 
@@ -17,4 +17,8 @@ public interface OrderService {
     List<OrderDto> getAllOrders();
 
     OrderDto addProductToOrder(Long productId,Long orderId, Long userId);
+
+    OrderDto removeProductFromOrder(Long orderId, Long productId);
+         
+
 }

@@ -149,8 +149,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.getProducts().remove(product);
-        order.setTotalPrice(order.getTotalPrice() - product.getPrice());
-
+        order.setTotalPrice(calculateTotalPrice(order.getProducts()));
+        product.setQuantity(product.getQuantity() + 1);
+        productRepository.save(product);
         orderRepository.save(order);
         return OrderMapper.toOrderDto(order);
     }

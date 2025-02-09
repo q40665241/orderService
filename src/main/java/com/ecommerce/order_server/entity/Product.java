@@ -19,18 +19,20 @@ public class Product {
     private String description;
     private Double price;
     private Integer quantity;
+    private String imageUrl;
     // Getter and Setter for id
 
     public Product() {
     }
 
     // All-arguments constructor
-    public Product(Long id, String name, String description, Double price, Integer quantity) {
+    public Product(Long id, String name, String description, Double price, Integer quantity,String imageUrl) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.quantity = quantity;
+        this.imageUrl = imageUrl;
     }
     public Long getId() {
         return id;
@@ -74,5 +76,12 @@ public class Product {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
